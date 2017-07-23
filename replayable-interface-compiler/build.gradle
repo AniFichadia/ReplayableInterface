@@ -1,0 +1,32 @@
+/*
+ * Copyright (C) 2017 Aniruddh Fichadia
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * If you use or enhance the code, please let me know using the provided author information or via email Ani.Fichadia@gmail.com.
+ */
+
+apply plugin: 'java'
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile project(':replayable-interface')
+
+    // Square
+    compile 'com.squareup:javapoet:1.7.0'
+    // Third Party
+    compile 'com.github.javaparser:javaparser-core:2.4.0'
+
+    compile 'com.google.auto.service:auto-service:1.0-rc2'
+    compile 'com.google.auto:auto-common:0.6'
+
+    compileOnly files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+}
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
