@@ -22,4 +22,6 @@ public interface Delegator<DelegateT> {
     void unBindDelegate();
 
     boolean isDelegateBound();
+
+    DelegateT getDelegate();
 }

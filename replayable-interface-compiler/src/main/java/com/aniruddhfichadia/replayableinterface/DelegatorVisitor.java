@@ -42,6 +42,7 @@ public class DelegatorVisitor {
     public static final String METHOD_NAME_IS_DELEGATE_BOUND = "isDelegateBound";
     public static final String METHOD_NAME_BIND_DELEGATE     = "bindDelegate";
     public static final String METHOD_NAME_UN_BIND_DELEGATE  = "unBindDelegate";
+    public static final String METHOD_NAME_GET_DELEGATE      = "getDelegate";
 
     private final TypeSpec.Builder      classBuilder;
     private final ClassName             targetClassName;
@@ -70,7 +71,8 @@ public class DelegatorVisitor {
     public DelegatorVisitor applyMethods() {
         classBuilder.addMethod(createMethodBindDelegate())
                     .addMethod(createMethodUnBindDelegate())
-                    .addMethod(createMethodIsDelegateBound());
+                    .addMethod(createMethodIsDelegateBound())
+                    .addMethod(createMethodGetDelegate());
         return this;
     }
 
@@ -122,6 +124,18 @@ public class DelegatorVisitor {
                                                          FIELD_NAME_DELEGATE_REFERENCE)
                                            .build()
                          )
+                         .build();
+    }
+
+    private MethodSpec createMethodGetDelegate() {
+        return MethodSpec.methodBuilder(METHOD_NAME_GET_DELEGATE)
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                         .returns(targetClassName)
+                         .addCode(CodeBlock.builder()
+                                           .addStatement("return this.$L.get()",
+                                                         FIELD_NAME_DELEGATE_REFERENCE)
+                                           .build())
                          .build();
     }
 }
