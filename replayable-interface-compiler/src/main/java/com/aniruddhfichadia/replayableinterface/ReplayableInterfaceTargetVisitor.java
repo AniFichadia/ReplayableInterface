@@ -182,7 +182,7 @@ public class ReplayableInterfaceTargetVisitor {
             }
 
             if (!ReplayStrategy.NONE.equals(replayStrategy)) {
-                if (ReplayType.REPLAY_IF_NO_DELEGATE == replayType) {
+                if (ReplayType.DELEGATE_OR_REPLAY == replayType) {
                     methodCode.nextControlFlow("else");
                 }
 
@@ -195,7 +195,7 @@ public class ReplayableInterfaceTargetVisitor {
                                                                         replayOnTargetBuilder.build()));
             }
 
-            if (ReplayType.REPLAY_IF_NO_DELEGATE == replayType) {
+            if (ReplayType.DELEGATE_OR_REPLAY == replayType) {
                 methodCode.endControlFlow();
             }
         }

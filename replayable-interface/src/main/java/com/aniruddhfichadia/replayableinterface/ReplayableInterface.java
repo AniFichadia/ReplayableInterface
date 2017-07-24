@@ -28,13 +28,13 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 public @interface ReplayableInterface {
     ReplayStrategy value() default ReplayStrategy.ENQUEUE_LAST_ONLY;
 
-    ReplayType replayType() default ReplayType.REPLAY_IF_NO_DELEGATE;
+    ReplayType replayType() default ReplayType.DELEGATE_OR_REPLAY;
 
     boolean clearAfterReplaying() default true;
 
 
     enum ReplayType {
-        REPLAY_IF_NO_DELEGATE,
+        DELEGATE_OR_REPLAY,
         DELEGATE_AND_REPLAY
     }
 }
