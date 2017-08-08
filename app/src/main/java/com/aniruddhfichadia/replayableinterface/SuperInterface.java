@@ -9,36 +9,14 @@
  *
  * If you use or enhance the code, please let me know using the provided author information or via email Ani.Fichadia@gmail.com.
  */
+
 package com.aniruddhfichadia.replayableinterface;
 
 
 /**
  * @author Aniruddh Fichadia
- * @date 2017-07-23
+ * @date 2017-07-28
  */
-public class DemoContract {
-    @ReplayableInterface
-    interface DemoUi {
-        @ReplayableMethod(ReplayStrategy.NONE)
-        void doMeaninglessThing();
-
-        @ReplayableMethod(ReplayStrategy.ENQUEUE_PARAM_UNIQUE)
-        void doSomethingElseMeaningLess(String aParam, boolean anotherParam);
-
-        @ReplayableMethod(ReplayStrategy.ENQUEUE)
-        void somethingEnqueueable(String aParam);
-
-        @ReplayableMethod(value = ReplayStrategy.ENQUEUE_LAST_IN_GROUP, group = "loadingState")
-        void showLoading();
-
-        @ReplayableMethod(value = ReplayStrategy.ENQUEUE_LAST_IN_GROUP, group = "loadingState")
-        void hideLoading();
-
-        void setMessage(String text);
-
-        void setLoadingAllowed(boolean allowed);
-
-
-        int returnsSomething();
-    }
+public interface SuperInterface {
+    void doBlah();
 }
