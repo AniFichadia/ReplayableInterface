@@ -19,6 +19,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeSpec.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,15 +29,18 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NAME_DELEGATE_REFERENCE;
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_IS_DELEGATE_BOUND;
 import static com.aniruddhfichadia.replayableinterface.ReplaySourceVisitor.METHOD_NAME_ADD_REPLAYABLE_ACTION;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.FIELD_NAME_PARAMS;
+import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.OBJECT;
 import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.REPLAY_STRATEGY;
 
 
@@ -53,8 +57,9 @@ public class ReplayableInterfaceTargetVisitor {
 
 
     private final TypeSpec.Builder classBuilder;
-    private final Element          baseElement;
     private final ClassName        targetClassName;
+    private final Element          baseElement;
+    private final Elements         elementUtils;
     private final ReplayType       replayType;
     private final ReplayStrategy   defaultReplyStrategy;
 
@@ -63,14 +68,15 @@ public class ReplayableInterfaceTargetVisitor {
     private final List<String> errors;
 
 
-    public ReplayableInterfaceTargetVisitor(TypeSpec.Builder classBuilder, ClassName targetClassName,
-                                            Element baseElement, ReplayType replayType,
-                                            ReplayStrategy defaultReplyStrategy) {
+    public ReplayableInterfaceTargetVisitor(Builder classBuilder, ClassName targetClassName,
+                                            Element baseElement, Elements elementUtils,
+                                            ReplayType replayType, ReplayStrategy defaultReplyStrategy) {
         super();
 
         this.classBuilder = classBuilder;
         this.targetClassName = targetClassName;
         this.baseElement = baseElement;
+        this.elementUtils = elementUtils;
         this.replayType = replayType;
         this.defaultReplyStrategy = defaultReplyStrategy;
         this.warnings = new ArrayList<>();
@@ -84,14 +90,27 @@ public class ReplayableInterfaceTargetVisitor {
 
 
     public ReplayableInterfaceTargetVisitor applyMethods() {
-        List<ExecutableElement> methods = ElementFilter.methodsIn(
-                baseElement.getEnclosedElements());
+        List<ExecutableElement> methods = getMethodsFromInterface((TypeElement) baseElement);
 
         for (ExecutableElement method : methods) {
             classBuilder.addMethod(createImplementedMethod(method));
         }
 
         return this;
+    }
+
+    private List<ExecutableElement> getMethodsFromInterface(TypeElement element) {
+        List<? extends Element> objectMembers = elementUtils.getAllMembers(
+                elementUtils.getTypeElement(OBJECT.toString())
+        );
+
+        List<? extends Element> allMembers = new ArrayList<>(
+                elementUtils.getAllMembers(element)
+        );
+
+        allMembers.removeAll(objectMembers);
+
+        return ElementFilter.methodsIn(allMembers);
     }
 
 

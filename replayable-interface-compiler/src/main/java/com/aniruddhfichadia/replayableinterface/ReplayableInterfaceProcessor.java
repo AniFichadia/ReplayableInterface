@@ -32,10 +32,13 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic.Kind;
 
 import static com.google.auto.common.MoreElements.getPackage;
@@ -45,6 +48,7 @@ import static com.google.auto.common.MoreElements.getPackage;
  * @author Aniruddh Fichadia
  * @date 2017-01-18
  */
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 @AutoService(Processor.class)
 public class ReplayableInterfaceProcessor
         extends AbstractProcessor {
@@ -54,11 +58,13 @@ public class ReplayableInterfaceProcessor
 
     public static final ClassName REPLAY_STRATEGY = ClassName.get(PACKAGE_REPLAYABLE_INTERFACE,
                                                                   "ReplayStrategy");
+    public static final ClassName OBJECT          = ClassName.get("java.lang", "Object");
     public static final ClassName STRING          = ClassName.get("java.lang", "String");
     public static final ClassName WEAK_REFERENCE  = ClassName.get("java.lang.ref", "WeakReference");
 
 
-    private Filer filer;
+    private Filer    filer;
+    private Elements elementUtils;
 
 
     @Override
@@ -66,6 +72,7 @@ public class ReplayableInterfaceProcessor
         super.init(processingEnv);
 
         this.filer = processingEnv.getFiler();
+        elementUtils = processingEnv.getElementUtils();
     }
 
     @Override
@@ -125,7 +132,8 @@ public class ReplayableInterfaceProcessor
 
                 ReplayableInterfaceTargetVisitor replayableInterfaceTargetVisitor =
                         new ReplayableInterfaceTargetVisitor(classBuilder, targetClassName, element,
-                                                             replayType, defaultReplyStrategy)
+                                                             elementUtils, replayType,
+                                                             defaultReplyStrategy)
                                 .applyClassDefinition()
                                 .applyMethods();
                 warnings.addAll(replayableInterfaceTargetVisitor.getWarnings());
