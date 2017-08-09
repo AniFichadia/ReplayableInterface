@@ -22,10 +22,9 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
-import javax.lang.model.element.Modifier;
+import java.lang.ref.WeakReference;
 
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.PACKAGE_REPLAYABLE_INTERFACE;
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.WEAK_REFERENCE;
+import javax.lang.model.element.Modifier;
 
 
 /**
@@ -33,8 +32,9 @@ import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProces
  * @date 2017-01-21
  */
 public class DelegatorVisitor {
-    public static final ClassName DELEGATABLE = ClassName.get(PACKAGE_REPLAYABLE_INTERFACE,
-                                                              "Delegator");
+    public static final ClassName CLASS_NAME_DELEGATOR = ClassName.get(Delegator.class);
+
+    public static final ClassName CLASS_NAME_WEAK_REFERENCE = ClassName.get(WeakReference.class);
 
     public static final String FIELD_NAME_DELEGATE_REFERENCE = "delegateReference";
     public static final String PARAM_NAME_DELEGATE           = "delegate";
@@ -54,12 +54,14 @@ public class DelegatorVisitor {
 
         this.classBuilder = classBuilder;
         this.targetClassName = targetClassName;
-        this.delegateReferenceType = ParameterizedTypeName.get(WEAK_REFERENCE, targetClassName);
+        this.delegateReferenceType = ParameterizedTypeName.get(CLASS_NAME_WEAK_REFERENCE,
+                                                               targetClassName);
     }
 
 
     public DelegatorVisitor applyClassDefinition() {
-        classBuilder.addSuperinterface(ParameterizedTypeName.get(DELEGATABLE, targetClassName));
+        classBuilder.addSuperinterface(
+                ParameterizedTypeName.get(CLASS_NAME_DELEGATOR, targetClassName));
         return this;
     }
 

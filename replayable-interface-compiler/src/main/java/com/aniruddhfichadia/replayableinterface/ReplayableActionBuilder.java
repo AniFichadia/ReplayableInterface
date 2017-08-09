@@ -21,16 +21,13 @@ import com.squareup.javapoet.TypeSpec;
 
 import javax.lang.model.element.Modifier;
 
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.PACKAGE_REPLAYABLE_INTERFACE;
-
 
 /**
  * @author Aniruddh Fichadia
  * @date 2017-01-23
  */
 public class ReplayableActionBuilder {
-    public static final ClassName REPLAYABLE_ACTION = ClassName.get(PACKAGE_REPLAYABLE_INTERFACE,
-                                                                    "ReplayableAction");
+    public static final ClassName REPLAYABLE_ACTION = ClassName.get(ReplayableAction.class);
 
     public static final String METHOD_NAME_REPLAY_ON_TARGET = "replayOnTarget";
     public static final String FIELD_NAME_PARAMS            = "params";

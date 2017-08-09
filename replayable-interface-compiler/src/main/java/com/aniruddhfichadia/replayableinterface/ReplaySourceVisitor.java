@@ -21,12 +21,13 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import javax.lang.model.element.Modifier;
 
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.METHOD_NAME_REPLAY_ON_TARGET;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.REPLAYABLE_ACTION;
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.PACKAGE_REPLAYABLE_INTERFACE;
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.STRING;
 
 
 /**
@@ -34,11 +35,11 @@ import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProces
  * @date 2017-01-21
  */
 public class ReplaySourceVisitor {
-    public static final ClassName REPLAY_SOURCE = ClassName.get(PACKAGE_REPLAYABLE_INTERFACE,
-                                                                "ReplaySource");
+    public static final ClassName CLASS_NAME_REPLAY_SOURCE = ClassName.get(ReplaySource.class);
 
-    public static final ClassName LINKED_HASH_MAP = ClassName.get("java.util", "LinkedHashMap");
-    public static final ClassName ENTRY           = ClassName.get("java.util.Map", "Entry");
+    public static final ClassName CLASS_NAME_STRING          = ClassName.get(String.class);
+    public static final ClassName CLASS_NAME_LINKED_HASH_MAP = ClassName.get(LinkedHashMap.class);
+    public static final ClassName CLASS_NAME_ENTRY           = ClassName.get(Map.Entry.class);
 
     public static final String FIELD_NAME_ACTIONS                = "actions";
     public static final String METHOD_NAME_ADD_REPLAYABLE_ACTION = "addReplayableAction";
@@ -51,7 +52,7 @@ public class ReplaySourceVisitor {
     private final ClassName        targetClassName;
     private final boolean          clearAfterReplaying;
 
-    private final ClassName typeKey = STRING;
+    private final ClassName typeKey = CLASS_NAME_STRING;
     private final ParameterizedTypeName typeValue;
 
 
@@ -66,7 +67,8 @@ public class ReplaySourceVisitor {
 
 
     public ReplaySourceVisitor applyClassDefinition() {
-        classBuilder.addSuperinterface(ParameterizedTypeName.get(REPLAY_SOURCE, targetClassName));
+        classBuilder.addSuperinterface(
+                ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassName));
         return this;
     }
 
@@ -83,8 +85,9 @@ public class ReplaySourceVisitor {
 
 
     private FieldSpec createFieldActions() {
-        return FieldSpec.builder(ParameterizedTypeName.get(LINKED_HASH_MAP, typeKey, typeValue),
-                                 FIELD_NAME_ACTIONS)
+        return FieldSpec.builder(
+                ParameterizedTypeName.get(CLASS_NAME_LINKED_HASH_MAP, typeKey, typeValue),
+                FIELD_NAME_ACTIONS)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .initializer(CodeBlock.of("new LinkedHashMap<>()"))
                         .build();
@@ -95,7 +98,7 @@ public class ReplaySourceVisitor {
         return MethodSpec.methodBuilder(METHOD_NAME_ADD_REPLAYABLE_ACTION)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(STRING, PARAM_NAME_KEY)
+                         .addParameter(CLASS_NAME_STRING, PARAM_NAME_KEY)
                          .addParameter(
                                  ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassName),
                                  PARAM_NAME_ACTION)
@@ -112,7 +115,8 @@ public class ReplaySourceVisitor {
         CodeBlock.Builder replayMethodBody =
                 CodeBlock.builder()
                          .beginControlFlow("for ($T entry : $L.entrySet())",
-                                           ParameterizedTypeName.get(ENTRY, typeKey, typeValue),
+                                           ParameterizedTypeName.get(CLASS_NAME_ENTRY, typeKey,
+                                                                     typeValue),
                                            FIELD_NAME_ACTIONS)
                          .addStatement("entry.getValue().$L($L)", METHOD_NAME_REPLAY_ON_TARGET,
                                        PARAM_NAME_TARGET)

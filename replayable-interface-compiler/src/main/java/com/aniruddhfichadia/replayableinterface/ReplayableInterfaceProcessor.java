@@ -54,14 +54,6 @@ public class ReplayableInterfaceProcessor
         extends AbstractProcessor {
     private static final boolean IS_TEST = false;
 
-    public static final String PACKAGE_REPLAYABLE_INTERFACE = "com.aniruddhfichadia.replayableinterface";
-
-    public static final ClassName REPLAY_STRATEGY = ClassName.get(PACKAGE_REPLAYABLE_INTERFACE,
-                                                                  "ReplayStrategy");
-    public static final ClassName OBJECT          = ClassName.get("java.lang", "Object");
-    public static final ClassName STRING          = ClassName.get("java.lang", "String");
-    public static final ClassName WEAK_REFERENCE  = ClassName.get("java.lang.ref", "WeakReference");
-
 
     private Filer    filer;
     private Elements elementUtils;

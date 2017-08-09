@@ -24,6 +24,7 @@ import com.squareup.javapoet.TypeSpec.Builder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -40,8 +41,6 @@ import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NA
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_IS_DELEGATE_BOUND;
 import static com.aniruddhfichadia.replayableinterface.ReplaySourceVisitor.METHOD_NAME_ADD_REPLAYABLE_ACTION;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.FIELD_NAME_PARAMS;
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.OBJECT;
-import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProcessor.REPLAY_STRATEGY;
 
 
 /**
@@ -49,9 +48,14 @@ import static com.aniruddhfichadia.replayableinterface.ReplayableInterfaceProces
  * @date 2017-01-21
  */
 public class ReplayableInterfaceTargetVisitor {
-    public static final ClassName UUID                   = ClassName.get("java.util", "UUID");
-    public static final ClassName NULL_POINTER_EXCEPTION = ClassName.get("java.lang",
-                                                                         "NullPointerException");
+    public static final ClassName CLASS_NAME_REPLAY_STRATEGY        = ClassName.get(
+            ReplayStrategy.class
+    );
+    public static final ClassName CLASS_NAME_OBJECT                 = ClassName.get(Object.class);
+    public static final ClassName CLASS_NAME_UUID                   = ClassName.get(UUID.class);
+    public static final ClassName CLASS_NAME_NULL_POINTER_EXCEPTION = ClassName.get(
+            NullPointerException.class
+    );
 
     private static final String VAR_NAME_ACTION_KEY = "_actionKey";
 
@@ -101,7 +105,7 @@ public class ReplayableInterfaceTargetVisitor {
 
     private List<ExecutableElement> getMethodsFromInterface(TypeElement element) {
         List<? extends Element> objectMembers = elementUtils.getAllMembers(
-                elementUtils.getTypeElement(OBJECT.toString())
+                elementUtils.getTypeElement(CLASS_NAME_OBJECT.toString())
         );
 
         List<? extends Element> allMembers = new ArrayList<>(
@@ -137,7 +141,7 @@ public class ReplayableInterfaceTargetVisitor {
                           .addModifiers(Modifier.PUBLIC)
                           .returns(TypeName.get(methodReturnType))
                           .addJavadoc("Built using {@link $T#" + replayStrategy + "}\n",
-                                      REPLAY_STRATEGY);
+                                      CLASS_NAME_REPLAY_STRATEGY);
 
         StringBuilder allParamNamesBuilder = new StringBuilder();
         StringBuilder allParamTypesBuilder = new StringBuilder();
@@ -179,14 +183,15 @@ public class ReplayableInterfaceTargetVisitor {
         CodeBlock.Builder methodCode = CodeBlock.builder();
         methodCode.beginControlFlow("if ($L())", METHOD_NAME_IS_DELEGATE_BOUND);
         if (methodReturnsNonVoidValue) {
-            methodBuilder.addException(NULL_POINTER_EXCEPTION);
-            methodBuilder.addJavadoc("@throws $T if {@link $L} is null\n", NULL_POINTER_EXCEPTION,
+            methodBuilder.addException(CLASS_NAME_NULL_POINTER_EXCEPTION);
+            methodBuilder.addJavadoc("@throws $T if {@link $L} is null\n",
+                                     CLASS_NAME_NULL_POINTER_EXCEPTION,
                                      FIELD_NAME_DELEGATE_REFERENCE);
 
             methodCode.addStatement("return this.$L.get().$L($L)", FIELD_NAME_DELEGATE_REFERENCE,
                                     methodName, allParamNames)
                       .nextControlFlow("else")
-                      .addStatement("throw new $T($S)", NULL_POINTER_EXCEPTION,
+                      .addStatement("throw new $T($S)", CLASS_NAME_NULL_POINTER_EXCEPTION,
                                     FIELD_NAME_DELEGATE_REFERENCE + " contains a null reference " +
                                             "because it is not bound. This method cannot be " +
                                             "invoked since it returns a non-void value and is " +
@@ -242,7 +247,7 @@ public class ReplayableInterfaceTargetVisitor {
                                                    .add("String $L = ", VAR_NAME_ACTION_KEY);
         switch (replayStrategy) {
             case ENQUEUE:
-                actionKeyCode.addStatement("$T.randomUUID().toString()", UUID);
+                actionKeyCode.addStatement("$T.randomUUID().toString()", CLASS_NAME_UUID);
                 break;
             case ENQUEUE_LAST_ONLY:
                 actionKeyCode.addStatement("\"$L($L)\"", methodName, allParamTypes);
