@@ -87,8 +87,21 @@ public class ReplayableInterfaceProcessor
 
     @Override
     public boolean process(Set<? extends TypeElement> elements, RoundEnvironment env) {
+        if (env.processingOver()) {
+            return true;
+        }
+
+        Set<? extends Element> annotatedElements = env.getElementsAnnotatedWith(
+                ReplayableInterface.class
+        );
+        if (annotatedElements.isEmpty()) {
+            // Early exit if there are no elements, or if this is another annotation processing
+            // pass without any annotated elements remaining
+            return false;
+        }
+
         // Process each @ReplayableInterface element.
-        for (Element element : env.getElementsAnnotatedWith(ReplayableInterface.class)) {
+        for (Element element : annotatedElements) {
             if (!SuperficialValidation.validateElement(element)) {
                 continue;
             }

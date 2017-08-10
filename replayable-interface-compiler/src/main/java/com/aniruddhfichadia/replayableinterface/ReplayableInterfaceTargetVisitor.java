@@ -23,12 +23,10 @@ import com.squareup.javapoet.TypeSpec.Builder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -136,12 +134,9 @@ public class ReplayableInterfaceTargetVisitor {
         }
 
         MethodSpec.Builder methodBuilder =
-                MethodSpec.methodBuilder(methodName)
-                          .addAnnotation(Override.class)
-                          .addModifiers(Modifier.PUBLIC)
-                          .returns(TypeName.get(methodReturnType))
-                          .addJavadoc("Built using {@link $T#" + replayStrategy + "}\n",
-                                      CLASS_NAME_REPLAY_STRATEGY);
+                MethodSpec.overriding(method)
+                          .addJavadoc("Built using {@link $T#$L}\n", CLASS_NAME_REPLAY_STRATEGY,
+                                      replayStrategy);
 
         StringBuilder allParamNamesBuilder = new StringBuilder();
         StringBuilder allParamTypesBuilder = new StringBuilder();
@@ -154,14 +149,6 @@ public class ReplayableInterfaceTargetVisitor {
 
             TypeName paramType = TypeName.get(parameter.asType());
             Name paramName = parameter.getSimpleName();
-
-            Set<Modifier> modifiers = parameter.getModifiers();
-            Modifier[] modifierArr = new Modifier[modifiers.size()];
-            modifiers.toArray(modifierArr);
-
-            methodBuilder.addParameter(paramType,
-                                       paramName.toString(),
-                                       modifierArr);
 
             allParamNamesBuilder.append(paramName);
             allParamTypesBuilder.append(paramType);
