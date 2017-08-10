@@ -18,6 +18,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
 
@@ -25,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.METHOD_NAME_REPLAY_ON_TARGET;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.REPLAYABLE_ACTION;
@@ -49,26 +51,29 @@ public class ReplaySourceVisitor {
     public static final String PARAM_NAME_TARGET                 = "target";
 
     private final TypeSpec.Builder classBuilder;
-    private final ClassName        targetClassName;
+    private final TypeElement      targetClassElement;
+    private final TypeName         targetClassTypeName;
     private final boolean          clearAfterReplaying;
 
     private final ClassName typeKey = CLASS_NAME_STRING;
     private final ParameterizedTypeName typeValue;
 
 
-    public ReplaySourceVisitor(Builder classBuilder, ClassName targetClassName, boolean clearAfterReplaying) {
+    public ReplaySourceVisitor(Builder classBuilder, TypeElement targetClassElement,
+                               boolean clearAfterReplaying) {
         super();
 
         this.classBuilder = classBuilder;
-        this.targetClassName = targetClassName;
-        this.typeValue = ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassName);
+        this.targetClassElement = targetClassElement;
+        this.targetClassTypeName = TypeName.get(targetClassElement.asType());
+        this.typeValue = ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassTypeName);
         this.clearAfterReplaying = clearAfterReplaying;
     }
 
 
     public ReplaySourceVisitor applyClassDefinition() {
         classBuilder.addSuperinterface(
-                ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassName));
+                ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassTypeName));
         return this;
     }
 
@@ -100,7 +105,7 @@ public class ReplaySourceVisitor {
                          .addModifiers(Modifier.PUBLIC)
                          .addParameter(CLASS_NAME_STRING, PARAM_NAME_KEY)
                          .addParameter(
-                                 ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassName),
+                                 ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassTypeName),
                                  PARAM_NAME_ACTION)
                          .addCode(CodeBlock.builder()
                                            .addStatement("this.$L.remove($L)", FIELD_NAME_ACTIONS,
@@ -128,7 +133,7 @@ public class ReplaySourceVisitor {
         return MethodSpec.methodBuilder(METHOD_NAME_REPLAY)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC)
-                         .addParameter(targetClassName, PARAM_NAME_TARGET)
+                         .addParameter(targetClassTypeName, PARAM_NAME_TARGET)
                          .addCode(replayMethodBody.build())
                          .build();
     }

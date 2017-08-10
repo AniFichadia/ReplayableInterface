@@ -20,6 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
+import com.squareup.javapoet.TypeVariableName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +30,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NAME_DELEGATE_REFERENCE;
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_IS_DELEGATE_BOUND;
@@ -59,9 +63,9 @@ public class ReplayableInterfaceTargetVisitor {
 
 
     private final TypeSpec.Builder classBuilder;
-    private final ClassName        targetClassName;
-    private final Element          baseElement;
+    private final TypeElement      targetClassElement;
     private final Elements         elementUtils;
+    private final Types            typeUtils;
     private final ReplayType       replayType;
     private final ReplayStrategy   defaultReplyStrategy;
 
@@ -70,15 +74,15 @@ public class ReplayableInterfaceTargetVisitor {
     private final List<String> errors;
 
 
-    public ReplayableInterfaceTargetVisitor(Builder classBuilder, ClassName targetClassName,
-                                            Element baseElement, Elements elementUtils,
+    public ReplayableInterfaceTargetVisitor(Builder classBuilder, TypeElement targetClassElement,
+                                            Elements elementUtils, Types typeUtils,
                                             ReplayType replayType, ReplayStrategy defaultReplyStrategy) {
         super();
 
         this.classBuilder = classBuilder;
-        this.targetClassName = targetClassName;
-        this.baseElement = baseElement;
+        this.targetClassElement = targetClassElement;
         this.elementUtils = elementUtils;
+        this.typeUtils = typeUtils;
         this.replayType = replayType;
         this.defaultReplyStrategy = defaultReplyStrategy;
         this.warnings = new ArrayList<>();
@@ -86,13 +90,20 @@ public class ReplayableInterfaceTargetVisitor {
     }
 
     public ReplayableInterfaceTargetVisitor applyClassDefinition() {
-        classBuilder.addSuperinterface(targetClassName);
+        TypeMirror targetClassType = targetClassElement.asType();
+        classBuilder.addSuperinterface(TypeName.get(targetClassType));
+
+        List<? extends TypeParameterElement> typeParameters = targetClassElement.getTypeParameters();
+        for (TypeParameterElement typeParameter : typeParameters) {
+            classBuilder.addTypeVariable(TypeVariableName.get(typeParameter));
+        }
+
         return this;
     }
 
 
     public ReplayableInterfaceTargetVisitor applyMethods() {
-        List<ExecutableElement> methods = getMethodsFromInterface((TypeElement) baseElement);
+        List<ExecutableElement> methods = getMethodsFromInterface(targetClassElement);
 
         for (ExecutableElement method : methods) {
             classBuilder.addMethod(createImplementedMethod(method));
@@ -134,7 +145,7 @@ public class ReplayableInterfaceTargetVisitor {
         }
 
         MethodSpec.Builder methodBuilder =
-                MethodSpec.overriding(method)
+                MethodSpec.overriding(method, (DeclaredType) targetClassElement.asType(), typeUtils)
                           .addJavadoc("Built using {@link $T#$L}\n", CLASS_NAME_REPLAY_STRATEGY,
                                       replayStrategy);
 
@@ -278,7 +289,7 @@ public class ReplayableInterfaceTargetVisitor {
 
 
     private TypeSpec createAnonymousReplayableAction(String allParamNames, CodeBlock code) {
-        return new ReplayableActionBuilder(targetClassName)
+        return new ReplayableActionBuilder(targetClassElement)
                 .constructorArgumentNames(allParamNames)
                 .replayOnTargetBody(code)
                 .build();

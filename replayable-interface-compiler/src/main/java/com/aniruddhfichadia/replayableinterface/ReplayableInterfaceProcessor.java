@@ -39,6 +39,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic.Kind;
 
 import static com.google.auto.common.MoreElements.getPackage;
@@ -57,6 +58,7 @@ public class ReplayableInterfaceProcessor
 
     private Filer    filer;
     private Elements elementUtils;
+    private Types    typeUtils;
 
 
     @Override
@@ -64,7 +66,8 @@ public class ReplayableInterfaceProcessor
         super.init(processingEnv);
 
         this.filer = processingEnv.getFiler();
-        elementUtils = processingEnv.getElementUtils();
+        this.elementUtils = processingEnv.getElementUtils();
+        this.typeUtils = processingEnv.getTypeUtils();
     }
 
     @Override
@@ -135,9 +138,12 @@ public class ReplayableInterfaceProcessor
                                         "ReplayableInterface implementation of {@link $T}.\n",
                                         targetClassName);
 
+
+                TypeElement targetClassElement = (TypeElement) element;
+
                 ReplayableInterfaceTargetVisitor replayableInterfaceTargetVisitor =
-                        new ReplayableInterfaceTargetVisitor(classBuilder, targetClassName, element,
-                                                             elementUtils, replayType,
+                        new ReplayableInterfaceTargetVisitor(classBuilder, targetClassElement,
+                                                             elementUtils, typeUtils, replayType,
                                                              defaultReplyStrategy)
                                 .applyClassDefinition()
                                 .applyMethods();
@@ -145,12 +151,12 @@ public class ReplayableInterfaceProcessor
                 errors.addAll(replayableInterfaceTargetVisitor.getErrors());
 
 
-                new DelegatorVisitor(classBuilder, targetClassName)
+                new DelegatorVisitor(classBuilder, targetClassElement)
                         .applyClassDefinition()
                         .applyFields()
                         .applyMethods();
 
-                new ReplaySourceVisitor(classBuilder, targetClassName, clearAfterReplaying)
+                new ReplaySourceVisitor(classBuilder, targetClassElement, clearAfterReplaying)
                         .applyClassDefinition()
                         .applyFields()
                         .applyMethods();

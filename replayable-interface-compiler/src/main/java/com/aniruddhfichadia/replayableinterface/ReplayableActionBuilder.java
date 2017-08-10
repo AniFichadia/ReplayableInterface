@@ -17,9 +17,11 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
+import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 
 
 /**
@@ -33,14 +35,14 @@ public class ReplayableActionBuilder {
     public static final String FIELD_NAME_PARAMS            = "params";
     public static final String PARAM_NAME_TARGET            = "target";
 
-    private final ClassName targetClassName;
+    private final TypeElement targetClassElement;
 
     private String    constructorArgumentNames;
     private CodeBlock replayOnTargetBody;
 
 
-    public ReplayableActionBuilder(ClassName targetClassName) {
-        this.targetClassName = targetClassName;
+    public ReplayableActionBuilder(TypeElement targetClassElement) {
+        this.targetClassElement = targetClassElement;
     }
 
     public ReplayableActionBuilder constructorArgumentNames(String constructorArgumentNames) {
@@ -55,12 +57,16 @@ public class ReplayableActionBuilder {
 
 
     public TypeSpec build() {
+        TypeName targetClassTypeName = TypeName.get(targetClassElement.asType());
+
         return TypeSpec.anonymousClassBuilder(constructorArgumentNames)
-                       .superclass(ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassName))
+                       .superclass(
+                               ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassTypeName)
+                       )
                        .addMethod(MethodSpec.methodBuilder(METHOD_NAME_REPLAY_ON_TARGET)
                                             .addAnnotation(Override.class)
                                             .addModifiers(Modifier.PUBLIC)
-                                            .addParameter(targetClassName, PARAM_NAME_TARGET)
+                                            .addParameter(targetClassTypeName, PARAM_NAME_TARGET)
                                             .addCode(replayOnTargetBody)
                                             .build())
                        .build();

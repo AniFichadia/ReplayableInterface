@@ -25,6 +25,7 @@ import com.squareup.javapoet.TypeSpec;
 import java.lang.ref.WeakReference;
 
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 
 
 /**
@@ -45,23 +46,27 @@ public class DelegatorVisitor {
     public static final String METHOD_NAME_GET_DELEGATE      = "getDelegate";
 
     private final TypeSpec.Builder      classBuilder;
-    private final ClassName             targetClassName;
+    private final TypeElement           targetClassElement;
+    private final TypeName              targetClassTypeName;
     private final ParameterizedTypeName delegateReferenceType;
 
 
-    public DelegatorVisitor(TypeSpec.Builder classBuilder, ClassName targetClassName) {
+    public DelegatorVisitor(TypeSpec.Builder classBuilder, TypeElement targetClassElement) {
         super();
 
         this.classBuilder = classBuilder;
-        this.targetClassName = targetClassName;
-        this.delegateReferenceType = ParameterizedTypeName.get(CLASS_NAME_WEAK_REFERENCE,
-                                                               targetClassName);
+        this.targetClassElement = targetClassElement;
+        this.targetClassTypeName = TypeName.get(targetClassElement.asType());
+        this.delegateReferenceType = ParameterizedTypeName.get(
+                CLASS_NAME_WEAK_REFERENCE, targetClassTypeName
+        );
     }
 
 
     public DelegatorVisitor applyClassDefinition() {
         classBuilder.addSuperinterface(
-                ParameterizedTypeName.get(CLASS_NAME_DELEGATOR, targetClassName));
+                ParameterizedTypeName.get(CLASS_NAME_DELEGATOR, targetClassTypeName)
+        );
         return this;
     }
 
@@ -90,8 +95,9 @@ public class DelegatorVisitor {
         return MethodSpec.methodBuilder(METHOD_NAME_BIND_DELEGATE)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .addParameter(ParameterSpec.builder(targetClassName, PARAM_NAME_DELEGATE)
-                                                    .build()
+                         .addParameter(
+                                 ParameterSpec.builder(targetClassTypeName, PARAM_NAME_DELEGATE)
+                                              .build()
                          )
                          .addCode(CodeBlock.builder()
                                            .addStatement("this.$L = new $T($L)",
@@ -133,7 +139,7 @@ public class DelegatorVisitor {
         return MethodSpec.methodBuilder(METHOD_NAME_GET_DELEGATE)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .returns(targetClassName)
+                         .returns(targetClassTypeName)
                          .addCode(CodeBlock.builder()
                                            .addStatement("return this.$L.get()",
                                                          FIELD_NAME_DELEGATE_REFERENCE)
