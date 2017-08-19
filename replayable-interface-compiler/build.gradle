@@ -12,6 +12,11 @@
 import org.gradle.internal.jvm.Jvm
 
 apply plugin: 'java'
+apply from: "../common.gradle"
+
+group = replayableInterfaceGroup
+version = replayableInterfaceVersion
+description = replayableInterfaceDescription
 
 dependencies {
     compile project(':replayable-interface')
