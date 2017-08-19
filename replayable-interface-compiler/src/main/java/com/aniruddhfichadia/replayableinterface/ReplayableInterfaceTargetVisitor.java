@@ -40,6 +40,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NAME_DELEGATE_REFERENCE;
+import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_GET_DELEGATE;
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_IS_DELEGATE_BOUND;
 import static com.aniruddhfichadia.replayableinterface.ReplaySourceVisitor.METHOD_NAME_ADD_REPLAYABLE_ACTION;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.FIELD_NAME_PARAMS;
@@ -186,8 +187,8 @@ public class ReplayableInterfaceTargetVisitor {
                                      CLASS_NAME_NULL_POINTER_EXCEPTION,
                                      FIELD_NAME_DELEGATE_REFERENCE);
 
-            methodCode.addStatement("return this.$L.get().$L($L)", FIELD_NAME_DELEGATE_REFERENCE,
-                                    methodName, allParamNames)
+            methodCode.addStatement("return $L().$L($L)", METHOD_NAME_GET_DELEGATE, methodName,
+                                    allParamNames)
                       .nextControlFlow("else")
                       .addStatement("throw new $T($S)", CLASS_NAME_NULL_POINTER_EXCEPTION,
                                     FIELD_NAME_DELEGATE_REFERENCE + " contains a null reference " +
@@ -196,8 +197,8 @@ public class ReplayableInterfaceTargetVisitor {
                                             "auto-generated")
                       .endControlFlow();
         } else {
-            methodCode.addStatement("this.$L.get().$L($L)", FIELD_NAME_DELEGATE_REFERENCE,
-                                    methodName, allParamNames);
+            methodCode.addStatement("$L().$L($L)", METHOD_NAME_GET_DELEGATE, methodName,
+                                    allParamNames);
 
             if (ReplayType.DELEGATE_AND_REPLAY == replayType) {
                 methodCode.endControlFlow();
