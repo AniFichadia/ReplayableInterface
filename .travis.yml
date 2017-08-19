@@ -1,0 +1,35 @@
+language: android
+
+android:
+  components:
+    # Update tools and then platform-tools explicitly so lint gets an updated database. Can be removed once 3.0 is out.
+    - tools
+    - platform-tools
+
+jdk:
+  - oraclejdk8
+
+before_install:
+  # Install SDK license so Android Gradle plugin can install deps.
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+  # Install the rest of tools (e.g., avdmanager)
+  - sdkmanager tools
+
+install: ./gradlew clean assemble
+
+script:
+  - ./gradlew clean :replayable-interface:build :replayable-interface-compiler:build
+
+#after_success:
+#  - .buildscript/deploy_snapshot.sh
+
+notifications:
+  email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.gradle
