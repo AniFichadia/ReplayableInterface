@@ -16,15 +16,20 @@ package com.aniruddhfichadia.replayableinterface;
  * @author Aniruddh Fichadia
  * @date 2017-07-23
  */
-public class DemoInterface {
+public class Demo {
+    public interface SuperInterface {
+        void superMethod();
+    }
+
+
     @ReplayableInterface
     interface NestedInterface
             extends SuperInterface {
         @ReplayableMethod(ReplayStrategy.NONE)
-        void doMeaninglessThing();
+        void methodWithoutSideEffect();
 
         @ReplayableMethod(ReplayStrategy.ENQUEUE_PARAM_UNIQUE)
-        void doSomethingElseMeaningLess(String aParam, boolean anotherParam);
+        void methodWithParamUniqueCalls(String aParam, boolean anotherParam);
 
         @ReplayableMethod(ReplayStrategy.ENQUEUE)
         void somethingEnqueueable(String aParam);
