@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AniFichadia/ReplayableInterface.svg?branch=develop)](https://travis-ci.org/AniFichadia/ReplayableInterface)
+
 # ReplayableInterface
 ReplayableInterface takes an interface and uses code generation and annotation processing to generate a proxy/delegate/commander/insertSomeOtherRelevantPattern implementation.
 
