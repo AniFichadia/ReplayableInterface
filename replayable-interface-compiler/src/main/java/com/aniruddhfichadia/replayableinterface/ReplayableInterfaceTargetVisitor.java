@@ -41,7 +41,6 @@ import javax.lang.model.util.Types;
 
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NAME_DELEGATE_REFERENCE;
 import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_GET_DELEGATE;
-import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_IS_DELEGATE_BOUND;
 import static com.aniruddhfichadia.replayableinterface.ReplaySourceVisitor.METHOD_NAME_ADD_REPLAYABLE_ACTION;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.FIELD_NAME_PARAMS;
 
@@ -61,6 +60,7 @@ public class ReplayableInterfaceTargetVisitor {
     );
 
     private static final String VAR_NAME_ACTION_KEY = "_actionKey";
+    private static final String VAR_NAME_DELEGATE   = "_delegate";
 
 
     private final TypeSpec.Builder classBuilder;
@@ -180,14 +180,16 @@ public class ReplayableInterfaceTargetVisitor {
         String allParamTypes = allParamTypesBuilder.toString();
 
         CodeBlock.Builder methodCode = CodeBlock.builder();
-        methodCode.beginControlFlow("if ($L())", METHOD_NAME_IS_DELEGATE_BOUND);
+        methodCode.addStatement("$T $L = $L()", targetClassElement, VAR_NAME_DELEGATE,
+                                METHOD_NAME_GET_DELEGATE);
+        methodCode.beginControlFlow("if ($L != null)", VAR_NAME_DELEGATE);
         if (methodReturnsNonVoidValue) {
             methodBuilder.addException(CLASS_NAME_NULL_POINTER_EXCEPTION);
             methodBuilder.addJavadoc("@throws $T if {@link $L} is null\n",
                                      CLASS_NAME_NULL_POINTER_EXCEPTION,
                                      FIELD_NAME_DELEGATE_REFERENCE);
 
-            methodCode.addStatement("return $L().$L($L)", METHOD_NAME_GET_DELEGATE, methodName,
+            methodCode.addStatement("return $L.$L($L)", VAR_NAME_DELEGATE, methodName,
                                     allParamNames)
                       .nextControlFlow("else")
                       .addStatement("throw new $T($S)", CLASS_NAME_NULL_POINTER_EXCEPTION,
@@ -197,8 +199,7 @@ public class ReplayableInterfaceTargetVisitor {
                                             "auto-generated")
                       .endControlFlow();
         } else {
-            methodCode.addStatement("$L().$L($L)", METHOD_NAME_GET_DELEGATE, methodName,
-                                    allParamNames);
+            methodCode.addStatement("$L.$L($L)", VAR_NAME_DELEGATE, methodName, allParamNames);
 
             if (ReplayType.DELEGATE_AND_REPLAY == replayType) {
                 methodCode.endControlFlow();
