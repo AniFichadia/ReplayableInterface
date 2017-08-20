@@ -10,20 +10,16 @@
  * If you use or enhance the code, please let me know using the provided author information or via email Ani.Fichadia@gmail.com.
  */
 
-package com.aniruddhfichadia.replayableinterface;
+apply plugin: 'java'
+apply plugin: 'net.ltgt.apt'
 
-import org.junit.Test;
+dependencies {
+    compile project(':replayable-interface')
+    apt project(':replayable-interface-compiler')
+}
 
-import static org.junit.Assert.*;
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() throws Exception {
-        assertEquals(4, 2 + 2);
-    }
+// Include generated source sets
+sourceSets.each { set ->
+    set.java.srcDirs += new File(buildDir, "generated/source/apt/main")
 }
