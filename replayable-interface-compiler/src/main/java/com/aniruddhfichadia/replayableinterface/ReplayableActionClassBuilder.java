@@ -28,7 +28,7 @@ import javax.lang.model.element.TypeElement;
  * @author Aniruddh Fichadia
  * @date 2017-01-23
  */
-public class ReplayableActionBuilder {
+public class ReplayableActionClassBuilder {
     public static final ClassName REPLAYABLE_ACTION = ClassName.get(ReplayableAction.class);
 
     public static final String METHOD_NAME_REPLAY_ON_TARGET = "replayOnTarget";
@@ -41,16 +41,16 @@ public class ReplayableActionBuilder {
     private CodeBlock replayOnTargetBody;
 
 
-    public ReplayableActionBuilder(TypeElement targetClassElement) {
+    public ReplayableActionClassBuilder(TypeElement targetClassElement) {
         this.targetClassElement = targetClassElement;
     }
 
-    public ReplayableActionBuilder constructorArgumentNames(String constructorArgumentNames) {
+    public ReplayableActionClassBuilder constructorArgumentNames(String constructorArgumentNames) {
         this.constructorArgumentNames = constructorArgumentNames;
         return this;
     }
 
-    public ReplayableActionBuilder replayOnTargetBody(CodeBlock replayOnTargetBody) {
+    public ReplayableActionClassBuilder replayOnTargetBody(CodeBlock replayOnTargetBody) {
         this.replayOnTargetBody = replayOnTargetBody;
         return this;
     }

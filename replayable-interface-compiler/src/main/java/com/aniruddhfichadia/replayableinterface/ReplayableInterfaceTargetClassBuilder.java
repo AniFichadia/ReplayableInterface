@@ -39,17 +39,17 @@ import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 
-import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.FIELD_NAME_DELEGATE_REFERENCE;
-import static com.aniruddhfichadia.replayableinterface.DelegatorVisitor.METHOD_NAME_GET_DELEGATE;
-import static com.aniruddhfichadia.replayableinterface.ReplaySourceVisitor.METHOD_NAME_ADD_REPLAYABLE_ACTION;
-import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.FIELD_NAME_PARAMS;
+import static com.aniruddhfichadia.replayableinterface.DelegatorClassBuilder.FIELD_NAME_DELEGATE_REFERENCE;
+import static com.aniruddhfichadia.replayableinterface.DelegatorClassBuilder.METHOD_NAME_GET_DELEGATE;
+import static com.aniruddhfichadia.replayableinterface.ReplaySourceClassBuilder.METHOD_NAME_ADD_REPLAYABLE_ACTION;
+import static com.aniruddhfichadia.replayableinterface.ReplayableActionClassBuilder.FIELD_NAME_PARAMS;
 
 
 /**
  * @author Aniruddh Fichadia
  * @date 2017-01-21
  */
-public class ReplayableInterfaceTargetVisitor {
+public class ReplayableInterfaceTargetClassBuilder {
     public static final ClassName CLASS_NAME_REPLAY_STRATEGY        = ClassName.get(
             ReplayStrategy.class
     );
@@ -75,9 +75,9 @@ public class ReplayableInterfaceTargetVisitor {
     private final List<String> errors;
 
 
-    public ReplayableInterfaceTargetVisitor(Builder classBuilder, TypeElement targetClassElement,
-                                            Elements elementUtils, Types typeUtils,
-                                            ReplayType replayType, ReplayStrategy defaultReplyStrategy) {
+    public ReplayableInterfaceTargetClassBuilder(Builder classBuilder, TypeElement targetClassElement,
+                                                 Elements elementUtils, Types typeUtils,
+                                                 ReplayType replayType, ReplayStrategy defaultReplyStrategy) {
         super();
 
         this.classBuilder = classBuilder;
@@ -90,7 +90,7 @@ public class ReplayableInterfaceTargetVisitor {
         this.errors = new ArrayList<>();
     }
 
-    public ReplayableInterfaceTargetVisitor applyClassDefinition() {
+    public ReplayableInterfaceTargetClassBuilder applyClassDefinition() {
         TypeMirror targetClassType = targetClassElement.asType();
         classBuilder.addSuperinterface(TypeName.get(targetClassType));
 
@@ -103,7 +103,7 @@ public class ReplayableInterfaceTargetVisitor {
     }
 
 
-    public ReplayableInterfaceTargetVisitor applyMethods() {
+    public ReplayableInterfaceTargetClassBuilder applyMethods() {
         List<ExecutableElement> methods = getMethodsFromInterface(targetClassElement);
 
         for (ExecutableElement method : methods) {
@@ -154,7 +154,7 @@ public class ReplayableInterfaceTargetVisitor {
         StringBuilder allParamTypesBuilder = new StringBuilder();
         CodeBlock.Builder replayOnTargetBuilder =
                 CodeBlock.builder()
-                         .add("$L.$L(", ReplayableActionBuilder.PARAM_NAME_TARGET, methodName);
+                         .add("$L.$L(", ReplayableActionClassBuilder.PARAM_NAME_TARGET, methodName);
 
         for (int i = 0; i < methodParameters.size(); i++) {
             VariableElement parameter = methodParameters.get(i);
@@ -291,7 +291,7 @@ public class ReplayableInterfaceTargetVisitor {
 
 
     private TypeSpec createAnonymousReplayableAction(String allParamNames, CodeBlock code) {
-        return new ReplayableActionBuilder(targetClassElement)
+        return new ReplayableActionClassBuilder(targetClassElement)
                 .constructorArgumentNames(allParamNames)
                 .replayOnTargetBody(code)
                 .build();

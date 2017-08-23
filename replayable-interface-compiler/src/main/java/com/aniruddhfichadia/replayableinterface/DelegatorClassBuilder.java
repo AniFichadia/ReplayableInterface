@@ -32,7 +32,7 @@ import javax.lang.model.element.TypeElement;
  * @author Aniruddh Fichadia
  * @date 2017-01-21
  */
-public class DelegatorVisitor {
+public class DelegatorClassBuilder {
     public static final ClassName CLASS_NAME_DELEGATOR = ClassName.get(Delegator.class);
 
     public static final ClassName CLASS_NAME_WEAK_REFERENCE = ClassName.get(WeakReference.class);
@@ -51,7 +51,7 @@ public class DelegatorVisitor {
     private final ParameterizedTypeName delegateReferenceType;
 
 
-    public DelegatorVisitor(TypeSpec.Builder classBuilder, TypeElement targetClassElement) {
+    public DelegatorClassBuilder(TypeSpec.Builder classBuilder, TypeElement targetClassElement) {
         super();
 
         this.classBuilder = classBuilder;
@@ -63,19 +63,19 @@ public class DelegatorVisitor {
     }
 
 
-    public DelegatorVisitor applyClassDefinition() {
+    public DelegatorClassBuilder applyClassDefinition() {
         classBuilder.addSuperinterface(
                 ParameterizedTypeName.get(CLASS_NAME_DELEGATOR, targetClassTypeName)
         );
         return this;
     }
 
-    public DelegatorVisitor applyFields() {
+    public DelegatorClassBuilder applyFields() {
         classBuilder.addField(createFieldDelegateReference());
         return this;
     }
 
-    public DelegatorVisitor applyMethods() {
+    public DelegatorClassBuilder applyMethods() {
         classBuilder.addMethod(createMethodBindDelegate())
                     .addMethod(createMethodUnBindDelegate())
                     .addMethod(createMethodIsDelegateBound())

@@ -28,15 +28,15 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
-import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.METHOD_NAME_REPLAY_ON_TARGET;
-import static com.aniruddhfichadia.replayableinterface.ReplayableActionBuilder.REPLAYABLE_ACTION;
+import static com.aniruddhfichadia.replayableinterface.ReplayableActionClassBuilder.METHOD_NAME_REPLAY_ON_TARGET;
+import static com.aniruddhfichadia.replayableinterface.ReplayableActionClassBuilder.REPLAYABLE_ACTION;
 
 
 /**
  * @author Aniruddh Fichadia
  * @date 2017-01-21
  */
-public class ReplaySourceVisitor {
+public class ReplaySourceClassBuilder {
     public static final ClassName CLASS_NAME_REPLAY_SOURCE = ClassName.get(ReplaySource.class);
 
     public static final ClassName CLASS_NAME_STRING          = ClassName.get(String.class);
@@ -59,8 +59,8 @@ public class ReplaySourceVisitor {
     private final ParameterizedTypeName typeValue;
 
 
-    public ReplaySourceVisitor(Builder classBuilder, TypeElement targetClassElement,
-                               boolean clearAfterReplaying) {
+    public ReplaySourceClassBuilder(Builder classBuilder, TypeElement targetClassElement,
+                                    boolean clearAfterReplaying) {
         super();
 
         this.classBuilder = classBuilder;
@@ -71,18 +71,18 @@ public class ReplaySourceVisitor {
     }
 
 
-    public ReplaySourceVisitor applyClassDefinition() {
+    public ReplaySourceClassBuilder applyClassDefinition() {
         classBuilder.addSuperinterface(
                 ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassTypeName));
         return this;
     }
 
-    public ReplaySourceVisitor applyFields() {
+    public ReplaySourceClassBuilder applyFields() {
         classBuilder.addField(createFieldActions());
         return this;
     }
 
-    public ReplaySourceVisitor applyMethods() {
+    public ReplaySourceClassBuilder applyMethods() {
         classBuilder.addMethod(createMethodAddReplayableAction());
         classBuilder.addMethod(createMethodReplay());
         return this;

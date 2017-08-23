@@ -141,22 +141,22 @@ public class ReplayableInterfaceProcessor
 
                 TypeElement targetClassElement = (TypeElement) element;
 
-                ReplayableInterfaceTargetVisitor replayableInterfaceTargetVisitor =
-                        new ReplayableInterfaceTargetVisitor(classBuilder, targetClassElement,
-                                                             elementUtils, typeUtils, replayType,
-                                                             defaultReplyStrategy)
+                ReplayableInterfaceTargetClassBuilder replayableInterfaceTargetClassBuilder =
+                        new ReplayableInterfaceTargetClassBuilder(classBuilder, targetClassElement,
+                                                                  elementUtils, typeUtils, replayType,
+                                                                  defaultReplyStrategy)
                                 .applyClassDefinition()
                                 .applyMethods();
-                warnings.addAll(replayableInterfaceTargetVisitor.getWarnings());
-                errors.addAll(replayableInterfaceTargetVisitor.getErrors());
+                warnings.addAll(replayableInterfaceTargetClassBuilder.getWarnings());
+                errors.addAll(replayableInterfaceTargetClassBuilder.getErrors());
 
 
-                new DelegatorVisitor(classBuilder, targetClassElement)
+                new DelegatorClassBuilder(classBuilder, targetClassElement)
                         .applyClassDefinition()
                         .applyFields()
                         .applyMethods();
 
-                new ReplaySourceVisitor(classBuilder, targetClassElement, clearAfterReplaying)
+                new ReplaySourceClassBuilder(classBuilder, targetClassElement, clearAfterReplaying)
                         .applyClassDefinition()
                         .applyFields()
                         .applyMethods();
