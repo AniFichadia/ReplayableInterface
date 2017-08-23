@@ -9,34 +9,17 @@
  *
  * If you use or enhance the code, please let me know using the provided author information or via email Ani.Fichadia@gmail.com.
  */
+
 package com.aniruddhfichadia.replayableinterface;
-
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.CLASS;
 
 
 /**
  * @author Aniruddh Fichadia
- * @date 2017-01-17
+ * @date 2017-08-11
  */
-@Target(TYPE)
-@Retention(CLASS)
-public @interface ReplayableInterface {
-    ReplayStrategy value() default ReplayStrategy.ENQUEUE_LAST_ONLY;
+@ReplayableInterface(useWeakReferenceToDelegate = false)
+public interface InterfaceWithStrongReference<TypeT> {
+    void doBlah();
 
-    ReplayType replayType() default ReplayType.DELEGATE_OR_REPLAY;
-
-    boolean clearAfterReplaying() default true;
-
-    boolean useWeakReferenceToDelegate() default true;
-
-
-    enum ReplayType {
-        DELEGATE_OR_REPLAY,
-        DELEGATE_AND_REPLAY
-    }
+    TypeT returnSomethingWithGeneric();
 }

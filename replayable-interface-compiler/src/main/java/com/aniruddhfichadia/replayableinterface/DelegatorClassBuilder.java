@@ -17,12 +17,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-
-import java.lang.ref.WeakReference;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -32,10 +29,8 @@ import javax.lang.model.element.TypeElement;
  * @author Aniruddh Fichadia
  * @date 2017-01-21
  */
-public class DelegatorClassBuilder {
+public abstract class DelegatorClassBuilder {
     public static final ClassName CLASS_NAME_DELEGATOR = ClassName.get(Delegator.class);
-
-    public static final ClassName CLASS_NAME_WEAK_REFERENCE = ClassName.get(WeakReference.class);
 
     public static final String FIELD_NAME_DELEGATE_REFERENCE = "delegateReference";
     public static final String PARAM_NAME_DELEGATE           = "delegate";
@@ -45,21 +40,26 @@ public class DelegatorClassBuilder {
     public static final String METHOD_NAME_UN_BIND_DELEGATE  = "unBindDelegate";
     public static final String METHOD_NAME_GET_DELEGATE      = "getDelegate";
 
-    private final TypeSpec.Builder      classBuilder;
-    private final TypeElement           targetClassElement;
-    private final TypeName              targetClassTypeName;
-    private final ParameterizedTypeName delegateReferenceType;
+    private final   TypeSpec.Builder classBuilder;
+    protected final TypeName         targetClassTypeName;
 
 
-    public DelegatorClassBuilder(TypeSpec.Builder classBuilder, TypeElement targetClassElement) {
+    public static DelegatorClassBuilder get(TypeSpec.Builder classBuilder,
+                                            TypeElement targetClassElement,
+                                            boolean useWeakReferenceToDelegate) {
+        if (useWeakReferenceToDelegate) {
+            return new DelegatorWeakReferenceClassBuilder(classBuilder, targetClassElement);
+        } else {
+            return new DelegatorStrongReferenceClassBuilder(classBuilder, targetClassElement);
+        }
+    }
+
+
+    protected DelegatorClassBuilder(TypeSpec.Builder classBuilder, TypeElement targetClassElement) {
         super();
 
         this.classBuilder = classBuilder;
-        this.targetClassElement = targetClassElement;
         this.targetClassTypeName = TypeName.get(targetClassElement.asType());
-        this.delegateReferenceType = ParameterizedTypeName.get(
-                CLASS_NAME_WEAK_REFERENCE, targetClassTypeName
-        );
     }
 
 
@@ -84,66 +84,25 @@ public class DelegatorClassBuilder {
     }
 
 
-    private FieldSpec createFieldDelegateReference() {
-        return FieldSpec.builder(delegateReferenceType, FIELD_NAME_DELEGATE_REFERENCE)
-                        .addModifiers(Modifier.PRIVATE)
-                        .initializer(CodeBlock.of("new $T(null)", delegateReferenceType))
-                        .build();
-    }
+    protected abstract FieldSpec createFieldDelegateReference();
 
-    private MethodSpec createMethodBindDelegate() {
-        return MethodSpec.methodBuilder(METHOD_NAME_BIND_DELEGATE)
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .addParameter(
-                                 ParameterSpec.builder(targetClassTypeName, PARAM_NAME_DELEGATE)
-                                              .build()
-                         )
-                         .addCode(CodeBlock.builder()
-                                           .addStatement("this.$L = new $T($L)",
-                                                         FIELD_NAME_DELEGATE_REFERENCE,
-                                                         delegateReferenceType,
-                                                         PARAM_NAME_DELEGATE)
-                                           .build()
-                         )
-                         .build();
-    }
 
-    private MethodSpec createMethodUnBindDelegate() {
-        return MethodSpec.methodBuilder(METHOD_NAME_UN_BIND_DELEGATE)
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .addCode(CodeBlock.builder()
-                                           .addStatement("this.$L = new $T(null)",
-                                                         FIELD_NAME_DELEGATE_REFERENCE,
-                                                         delegateReferenceType)
-                                           .build()
-                         )
-                         .build();
-    }
+    protected abstract MethodSpec createMethodBindDelegate();
 
-    private MethodSpec createMethodIsDelegateBound() {
+    protected abstract MethodSpec createMethodUnBindDelegate();
+
+    protected MethodSpec createMethodIsDelegateBound(){
         return MethodSpec.methodBuilder(METHOD_NAME_IS_DELEGATE_BOUND)
                          .addAnnotation(Override.class)
                          .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                          .returns(TypeName.BOOLEAN)
                          .addCode(CodeBlock.builder()
-                                           .addStatement("return this.$L.get() != null",
-                                                         FIELD_NAME_DELEGATE_REFERENCE)
+                                           .addStatement("return this.$L() != null",
+                                                         METHOD_NAME_GET_DELEGATE)
                                            .build()
                          )
                          .build();
     }
 
-    private MethodSpec createMethodGetDelegate() {
-        return MethodSpec.methodBuilder(METHOD_NAME_GET_DELEGATE)
-                         .addAnnotation(Override.class)
-                         .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                         .returns(targetClassTypeName)
-                         .addCode(CodeBlock.builder()
-                                           .addStatement("return this.$L.get()",
-                                                         FIELD_NAME_DELEGATE_REFERENCE)
-                                           .build())
-                         .build();
-    }
+    protected abstract MethodSpec createMethodGetDelegate();
 }

@@ -185,9 +185,9 @@ public class ReplayableInterfaceTargetClassBuilder {
         methodCode.beginControlFlow("if ($L != null)", VAR_NAME_DELEGATE);
         if (methodReturnsNonVoidValue) {
             methodBuilder.addException(CLASS_NAME_NULL_POINTER_EXCEPTION);
-            methodBuilder.addJavadoc("@throws $T if {@link $L} is null\n",
+            methodBuilder.addJavadoc("@throws $T if {@link #$L()} returns null\n",
                                      CLASS_NAME_NULL_POINTER_EXCEPTION,
-                                     FIELD_NAME_DELEGATE_REFERENCE);
+                                     METHOD_NAME_GET_DELEGATE);
 
             methodCode.addStatement("return $L.$L($L)", VAR_NAME_DELEGATE, methodName,
                                     allParamNames)

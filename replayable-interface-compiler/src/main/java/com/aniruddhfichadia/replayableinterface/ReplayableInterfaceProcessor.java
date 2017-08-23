@@ -130,6 +130,7 @@ public class ReplayableInterfaceProcessor
                 ReplayStrategy defaultReplyStrategy = replayableInterface.value();
                 ReplayType replayType = replayableInterface.replayType();
                 boolean clearAfterReplaying = replayableInterface.clearAfterReplaying();
+                boolean useWeakReferenceToDelegate = replayableInterface.useWeakReferenceToDelegate();
 
                 TypeSpec.Builder classBuilder =
                         TypeSpec.classBuilder(replayableClassName)
@@ -143,7 +144,8 @@ public class ReplayableInterfaceProcessor
 
                 ReplayableInterfaceTargetClassBuilder replayableInterfaceTargetClassBuilder =
                         new ReplayableInterfaceTargetClassBuilder(classBuilder, targetClassElement,
-                                                                  elementUtils, typeUtils, replayType,
+                                                                  elementUtils, typeUtils,
+                                                                  replayType,
                                                                   defaultReplyStrategy)
                                 .applyClassDefinition()
                                 .applyMethods();
@@ -151,10 +153,10 @@ public class ReplayableInterfaceProcessor
                 errors.addAll(replayableInterfaceTargetClassBuilder.getErrors());
 
 
-                new DelegatorClassBuilder(classBuilder, targetClassElement)
-                        .applyClassDefinition()
-                        .applyFields()
-                        .applyMethods();
+                DelegatorClassBuilder.get(classBuilder, targetClassElement, useWeakReferenceToDelegate)
+                                     .applyClassDefinition()
+                                     .applyFields()
+                                     .applyMethods();
 
                 new ReplaySourceClassBuilder(classBuilder, targetClassElement, clearAfterReplaying)
                         .applyClassDefinition()

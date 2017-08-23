@@ -51,7 +51,6 @@ public class ReplaySourceClassBuilder {
     public static final String PARAM_NAME_TARGET                 = "target";
 
     private final TypeSpec.Builder classBuilder;
-    private final TypeElement      targetClassElement;
     private final TypeName         targetClassTypeName;
     private final boolean          clearAfterReplaying;
 
@@ -64,7 +63,6 @@ public class ReplaySourceClassBuilder {
         super();
 
         this.classBuilder = classBuilder;
-        this.targetClassElement = targetClassElement;
         this.targetClassTypeName = TypeName.get(targetClassElement.asType());
         this.typeValue = ParameterizedTypeName.get(REPLAYABLE_ACTION, targetClassTypeName);
         this.clearAfterReplaying = clearAfterReplaying;
@@ -73,7 +71,8 @@ public class ReplaySourceClassBuilder {
 
     public ReplaySourceClassBuilder applyClassDefinition() {
         classBuilder.addSuperinterface(
-                ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassTypeName));
+                ParameterizedTypeName.get(CLASS_NAME_REPLAY_SOURCE, targetClassTypeName)
+        );
         return this;
     }
 
