@@ -8,8 +8,8 @@ install: ./gradlew clean assemble
 script:
   - ./gradlew clean :replayable-interface:build :replayable-interface-compiler:build
 
-#after_success:
-#  - .buildscript/deploy_snapshot.sh
+after_success:
+  - .buildscript/deploy_snapshot.sh
 
 notifications:
   email: false
@@ -18,4 +18,5 @@ sudo: false
 
 cache:
   directories:
+    - $HOME/.m2
     - $HOME/.gradle

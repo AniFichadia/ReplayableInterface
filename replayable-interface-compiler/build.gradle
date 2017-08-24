@@ -12,11 +12,9 @@
 import org.gradle.internal.jvm.Jvm
 
 apply plugin: 'java'
-apply from: "../common.gradle"
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
-group = replayableInterfaceGroup
-version = replayableInterfaceVersion
-description = replayableInterfaceDescription
 
 dependencies {
     compile project(':replayable-interface')
@@ -32,5 +30,8 @@ dependencies {
     compileOnly files(Jvm.current().getToolsJar())
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+//apply from: '../gradle/gradle-mvn-push.gradle'
+apply from: rootProject.file('gradle/mvn_deploy.gradle')
