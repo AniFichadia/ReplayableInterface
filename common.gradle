@@ -12,6 +12,5 @@
 
 ext {
     replayableInterfaceGroup = 'com.aniruddhfichadia.replayableinterface'
-    replayableInterfaceVersion = '0.1.0'
-    replayableInterfaceDescription = 'ReplayableInterface'
+    replayableInterfaceVersion = '0.0.1-SNAPSHOT'
 }

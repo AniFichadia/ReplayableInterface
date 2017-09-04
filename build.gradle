@@ -10,11 +10,10 @@
  * If you use or enhance the code, please let me know using the provided author information or via email Ani.Fichadia@gmail.com.
  */
 
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+apply from: "./common.gradle"
+
 
 buildscript {
-    apply from: "./common.gradle"
-
     repositories {
         jcenter()
         maven { url "https://plugins.gradle.org/m2/" }

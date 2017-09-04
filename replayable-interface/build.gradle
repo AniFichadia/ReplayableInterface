@@ -11,14 +11,14 @@
  */
 
 apply plugin: 'java'
-apply from: "../common.gradle"
-
-group = replayableInterfaceGroup
-version = replayableInterfaceVersion
-description = replayableInterfaceDescription
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 dependencies {
 }
 
-sourceCompatibility = "1.7"
-targetCompatibility = "1.7"
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+
+//apply from: '../gradle/gradle-mvn-push.gradle'
+apply from: rootProject.file('gradle/mvn_deploy.gradle')
