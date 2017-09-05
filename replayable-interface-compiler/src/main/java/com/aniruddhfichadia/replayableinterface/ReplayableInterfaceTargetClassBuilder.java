@@ -13,9 +13,9 @@
 package com.aniruddhfichadia.replayableinterface;
 
 
-import com.aniruddhfichadia.replayableinterface.ReplayableInterface.ReplayType;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
@@ -28,6 +28,7 @@ import java.util.UUID;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
@@ -41,6 +42,7 @@ import javax.lang.model.util.Types;
 
 import static com.aniruddhfichadia.replayableinterface.DelegatorClassBuilder.FIELD_NAME_DELEGATE_REFERENCE;
 import static com.aniruddhfichadia.replayableinterface.DelegatorClassBuilder.METHOD_NAME_GET_DELEGATE;
+import static com.aniruddhfichadia.replayableinterface.ReplaySourceClassBuilder.FIELD_NAME_CLEAR_AFTER_REPLAYING;
 import static com.aniruddhfichadia.replayableinterface.ReplaySourceClassBuilder.METHOD_NAME_ADD_REPLAYABLE_ACTION;
 import static com.aniruddhfichadia.replayableinterface.ReplayableActionClassBuilder.FIELD_NAME_PARAMS;
 
@@ -59,15 +61,17 @@ public class ReplayableInterfaceTargetClassBuilder {
             NullPointerException.class
     );
 
-    private static final String VAR_NAME_ACTION_KEY = "_actionKey";
-    private static final String VAR_NAME_DELEGATE   = "_delegate";
+    private static final String FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS = "alwaysCaptureInvocations";
+    private static final String VAR_NAME_ACTION_KEY                   = "_actionKey";
+    private static final String VAR_NAME_DELEGATE                     = "_delegate";
 
 
     private final TypeSpec.Builder classBuilder;
     private final TypeElement      targetClassElement;
     private final Elements         elementUtils;
     private final Types            typeUtils;
-    private final ReplayType       replayType;
+    private final boolean          alwaysCaptureInvocations;
+    private final boolean          clearAfterReplaying;
     private final ReplayStrategy   defaultReplyStrategy;
 
 
@@ -77,14 +81,17 @@ public class ReplayableInterfaceTargetClassBuilder {
 
     public ReplayableInterfaceTargetClassBuilder(Builder classBuilder, TypeElement targetClassElement,
                                                  Elements elementUtils, Types typeUtils,
-                                                 ReplayType replayType, ReplayStrategy defaultReplyStrategy) {
+                                                 boolean alwaysCaptureInvocations,
+                                                 boolean clearAfterReplaying,
+                                                 ReplayStrategy defaultReplyStrategy) {
         super();
 
         this.classBuilder = classBuilder;
         this.targetClassElement = targetClassElement;
         this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
-        this.replayType = replayType;
+        this.alwaysCaptureInvocations = alwaysCaptureInvocations;
+        this.clearAfterReplaying = clearAfterReplaying;
         this.defaultReplyStrategy = defaultReplyStrategy;
         this.warnings = new ArrayList<>();
         this.errors = new ArrayList<>();
@@ -102,16 +109,63 @@ public class ReplayableInterfaceTargetClassBuilder {
         return this;
     }
 
+    public ReplayableInterfaceTargetClassBuilder applyFields() {
+        classBuilder.addField(
+                FieldSpec.builder(TypeName.BOOLEAN, FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS)
+                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                         .build()
+        );
+
+        return this;
+    }
+
 
     public ReplayableInterfaceTargetClassBuilder applyMethods() {
-        List<ExecutableElement> methods = getMethodsFromInterface(targetClassElement);
+        classBuilder.addMethod(createParamterisedConstructor());
+        classBuilder.addMethod(createDefaultConstructor());
 
+        List<ExecutableElement> methods = getMethodsFromInterface(targetClassElement);
         for (ExecutableElement method : methods) {
             classBuilder.addMethod(createImplementedMethod(method));
         }
 
         return this;
     }
+
+    private MethodSpec createParamterisedConstructor() {
+        return MethodSpec.constructorBuilder()
+                         .addModifiers(Modifier.PUBLIC)
+                         .addCode(
+                                 CodeBlock.builder()
+                                          .addStatement("this(" + alwaysCaptureInvocations + ", "
+                                                                + clearAfterReplaying + ")")
+                                          .build()
+                         )
+                         .build();
+    }
+
+    private MethodSpec createDefaultConstructor() {
+        return MethodSpec.constructorBuilder()
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(TypeName.BOOLEAN, FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS)
+                         .addParameter(TypeName.BOOLEAN, FIELD_NAME_CLEAR_AFTER_REPLAYING)
+                         .addCode(
+                                 CodeBlock.builder()
+                                          .addStatement("this.$L = $L",
+                                                        FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS,
+                                                        FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS)
+                                          .build()
+                         )
+                         .addCode(
+                                 CodeBlock.builder()
+                                          .addStatement("this.$L = $L",
+                                                        FIELD_NAME_CLEAR_AFTER_REPLAYING,
+                                                        FIELD_NAME_CLEAR_AFTER_REPLAYING)
+                                          .build()
+                         )
+                         .build();
+    }
+
 
     private List<ExecutableElement> getMethodsFromInterface(TypeElement element) {
         List<? extends Element> objectMembers = elementUtils.getAllMembers(
@@ -199,16 +253,13 @@ public class ReplayableInterfaceTargetClassBuilder {
                                             "auto-generated")
                       .endControlFlow();
         } else {
-            methodCode.addStatement("$L.$L($L)", VAR_NAME_DELEGATE, methodName, allParamNames);
-
-            if (ReplayType.DELEGATE_AND_REPLAY == replayType) {
-                methodCode.endControlFlow();
-            }
+            methodCode.addStatement("$L.$L($L)", VAR_NAME_DELEGATE, methodName, allParamNames)
+                      .endControlFlow();
 
             if (!ReplayStrategy.NONE.equals(replayStrategy)) {
-                if (ReplayType.DELEGATE_OR_REPLAY == replayType) {
-                    methodCode.nextControlFlow("else");
-                }
+                methodCode.beginControlFlow("if ($L || $L == null)",
+                                            FIELD_NAME_ALWAYS_CAPTURE_INVOCATIONS,
+                                            VAR_NAME_DELEGATE);
 
                 methodCode.add(createActionKey(methodName, methodParameters, allParamTypes, group,
                                                replayStrategy))
@@ -217,9 +268,6 @@ public class ReplayableInterfaceTargetClassBuilder {
                                         VAR_NAME_ACTION_KEY,
                                         createAnonymousReplayableAction(allParamNames,
                                                                         replayOnTargetBuilder.build()));
-            }
-
-            if (ReplayType.DELEGATE_OR_REPLAY == replayType) {
                 methodCode.endControlFlow();
             }
         }

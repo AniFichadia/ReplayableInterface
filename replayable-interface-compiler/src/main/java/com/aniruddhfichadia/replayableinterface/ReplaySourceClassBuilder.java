@@ -44,6 +44,7 @@ public class ReplaySourceClassBuilder {
     public static final ClassName CLASS_NAME_ENTRY           = ClassName.get(Map.Entry.class);
 
     public static final String FIELD_NAME_ACTIONS                = "actions";
+    public static final String FIELD_NAME_CLEAR_AFTER_REPLAYING  = "clearAfterReplaying";
     public static final String METHOD_NAME_ADD_REPLAYABLE_ACTION = "addReplayableAction";
     public static final String METHOD_NAME_REPLAY                = "replay";
     public static final String PARAM_NAME_KEY                    = "key";
@@ -78,6 +79,8 @@ public class ReplaySourceClassBuilder {
 
     public ReplaySourceClassBuilder applyFields() {
         classBuilder.addField(createFieldActions());
+        classBuilder.addField(createFieldClearAfterReplaying());
+
         return this;
     }
 
@@ -94,6 +97,12 @@ public class ReplaySourceClassBuilder {
                 FIELD_NAME_ACTIONS)
                         .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .initializer(CodeBlock.of("new LinkedHashMap<>()"))
+                        .build();
+    }
+
+    private FieldSpec createFieldClearAfterReplaying() {
+        return FieldSpec.builder(TypeName.BOOLEAN, FIELD_NAME_CLEAR_AFTER_REPLAYING)
+                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                         .build();
     }
 
@@ -125,9 +134,10 @@ public class ReplaySourceClassBuilder {
                          .addStatement("entry.getValue().$L($L)", METHOD_NAME_REPLAY_ON_TARGET,
                                        PARAM_NAME_TARGET)
                          .endControlFlow();
-        if (clearAfterReplaying) {
-            replayMethodBody.addStatement("$L.clear()", FIELD_NAME_ACTIONS);
-        }
+
+        replayMethodBody.beginControlFlow("if($L)", FIELD_NAME_CLEAR_AFTER_REPLAYING)
+                        .addStatement("$L.clear()", FIELD_NAME_ACTIONS)
+                        .endControlFlow();
 
         return MethodSpec.methodBuilder(METHOD_NAME_REPLAY)
                          .addAnnotation(Override.class)

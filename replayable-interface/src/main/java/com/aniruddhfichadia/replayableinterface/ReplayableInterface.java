@@ -28,15 +28,9 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 public @interface ReplayableInterface {
     ReplayStrategy value() default ReplayStrategy.ENQUEUE_LAST_ONLY;
 
-    ReplayType replayType() default ReplayType.DELEGATE_OR_REPLAY;
+    boolean alwaysCaptureInvocations() default false;
 
     boolean clearAfterReplaying() default true;
 
     boolean useWeakReferenceToDelegate() default true;
-
-
-    enum ReplayType {
-        DELEGATE_OR_REPLAY,
-        DELEGATE_AND_REPLAY
-    }
 }

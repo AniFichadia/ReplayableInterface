@@ -13,7 +13,6 @@
 package com.aniruddhfichadia.replayableinterface;
 
 
-import com.aniruddhfichadia.replayableinterface.ReplayableInterface.ReplayType;
 import com.google.auto.common.SuperficialValidation;
 import com.google.auto.service.AutoService;
 import com.squareup.javapoet.ClassName;
@@ -128,7 +127,7 @@ public class ReplayableInterfaceProcessor
                         ReplayableInterface.class
                 );
                 ReplayStrategy defaultReplyStrategy = replayableInterface.value();
-                ReplayType replayType = replayableInterface.replayType();
+                boolean alwaysCaptureInvocations = replayableInterface.alwaysCaptureInvocations();
                 boolean clearAfterReplaying = replayableInterface.clearAfterReplaying();
                 boolean useWeakReferenceToDelegate = replayableInterface.useWeakReferenceToDelegate();
 
@@ -145,9 +144,11 @@ public class ReplayableInterfaceProcessor
                 ReplayableInterfaceTargetClassBuilder replayableInterfaceTargetClassBuilder =
                         new ReplayableInterfaceTargetClassBuilder(classBuilder, targetClassElement,
                                                                   elementUtils, typeUtils,
-                                                                  replayType,
+                                                                  alwaysCaptureInvocations,
+                                                                  clearAfterReplaying,
                                                                   defaultReplyStrategy)
                                 .applyClassDefinition()
+                                .applyFields()
                                 .applyMethods();
                 warnings.addAll(replayableInterfaceTargetClassBuilder.getWarnings());
                 errors.addAll(replayableInterfaceTargetClassBuilder.getErrors());
