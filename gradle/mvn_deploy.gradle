@@ -16,7 +16,7 @@ def getReleaseRepositoryUrl() {
     } else if (System.env.REPOSITORY_URL_RELEASE != null) {
         return System.env.REPOSITORY_URL_RELEASE
     } else {
-        return "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+        return "https://oss.jfrog.org/artifactory/oss-release-local/"
     }
 }
 
@@ -60,9 +60,9 @@ afterEvaluate { project ->
                 pom.artifactId = ARTIFACT_ID
                 pom.version = VERSION
 
-//                repository(url: getReleaseRepositoryUrl()) {
-//                    authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
-//                }
+                repository(url: getReleaseRepositoryUrl()) {
+                    authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
+                }
                 snapshotRepository(url: getSnapshotRepositoryUrl()) {
                     authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
                 }
